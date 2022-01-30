@@ -64,6 +64,13 @@ class Food:
         self.position = [0, 0]
         self.eaten = False
 
+    def update(self, snake):
+        if self.position == snake.position:
+            self.eaten = True
+            snake.length += 1
+        if self.eaten:
+            self.spawn()
+
     def spawn(self):
         self.position = [
             random.randint(0, COLUMNS - 1),
@@ -78,20 +85,46 @@ class Food:
                               CELL_SIZE, CELL_SIZE, CELL_SIZE))
 
 
+class Player:
+
+    def __init__(self):
+        self.score = 0
+
+    def update(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    pygame.quit()
+                    sys.exit()
+                if event.key == pygame.K_RIGHT or event.key == pygame.K_d:
+                    if (game.snake.direction != "LEFT"):
+                        game.snake.direction = "RIGHT"
+                elif event.key == pygame.K_LEFT or event.key == pygame.K_a:
+                    if (game.snake.direction != "RIGHT"):
+                        game.snake.direction = "LEFT"
+                elif event.key == pygame.K_UP or event.key == pygame.K_w:
+                    if (game.snake.direction != "DOWN"):
+                        game.snake.direction = "UP"
+                elif event.key == pygame.K_DOWN or event.key == pygame.K_s:
+                    if (game.snake.direction != "UP"):
+                        game.snake.direction = "DOWN"
+
+
 class Game:
 
     def __init__(self):
         self.snake = Snake()
         self.food = Food()
+        self.player = Player()
         self.food.spawn()
 
     def update(self):
+        self.player.update()
         self.snake.update()
-
-        if self.snake.position == self.food.position:
-            self.food.eaten = True
-            self.snake.length += 1
-            self.food.spawn()
+        self.food.update(self.snake)
 
         if self.check_collision():
             self.gameover(screen)
@@ -136,44 +169,14 @@ class Game:
         self.food.spawn()
 
 
-class Player:
-
-    def __init__(self):
-        self.score = 0
-
-    def update(self):
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    pygame.quit()
-                    sys.exit()
-                if event.key == pygame.K_RIGHT or event.key == pygame.K_d:
-                    if (game.snake.direction != "LEFT"):
-                        game.snake.direction = "RIGHT"
-                elif event.key == pygame.K_LEFT or event.key == pygame.K_a:
-                    if (game.snake.direction != "RIGHT"):
-                        game.snake.direction = "LEFT"
-                elif event.key == pygame.K_UP or event.key == pygame.K_w:
-                    if (game.snake.direction != "DOWN"):
-                        game.snake.direction = "UP"
-                elif event.key == pygame.K_DOWN or event.key == pygame.K_s:
-                    if (game.snake.direction != "UP"):
-                        game.snake.direction = "DOWN"
-
-
 pygame.init()
 game = Game()
-player = Player()
+
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Snake Game")
 clock = pygame.time.Clock()
 
 while True:
-    player.update()
-
     game.update()
     game.draw(screen)
     pygame.display.flip()
