@@ -40,10 +40,12 @@ class Snake:
             self.body.pop()
 
     def draw(self, surface):
-        for part in self.body:
-            pygame.draw.rect(surface, GREEN,
-                             (part[0] * CELL_SIZE, part[1] * CELL_SIZE,
-                              CELL_SIZE, CELL_SIZE))
+        # first part is green, second part is white
+        for i in range(len(self.body)):
+            pygame.draw.rect(surface, GREEN if i == 0 else WHITE, [
+                self.body[i][0] * CELL_SIZE, self.body[i][1] * CELL_SIZE,
+                CELL_SIZE, CELL_SIZE
+            ])
 
     def check_collision(self):
         if self.position in self.body[1:]:
