@@ -1,24 +1,14 @@
-"""
-Snake Game using pygame
-We will define a grid of cells, and each cell will be a square.
-The snake will move around the grid, and the food will be placed randomly.
-The snake will grow as it eats the food.
-The snake will die if it runs into itself or the edge of the grid.
-"""
-
 import pygame
 import random
 import sys
 import time
 
-# Define some colors
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 GREEN = (0, 255, 0)
 RED = (255, 0, 0)
 BLUE = (0, 0, 255)
 
-# Define some global variables
 CELL_SIZE = 20
 ROWS = 30
 COLUMNS = 30
@@ -27,7 +17,6 @@ SCREEN_HEIGHT = ROWS * CELL_SIZE
 FPS = 30
 
 
-# Define the snake class
 class Snake:
 
     def __init__(self):
@@ -67,7 +56,6 @@ class Snake:
             return False
 
 
-# Define the food class
 class Food:
 
     def __init__(self):
@@ -88,7 +76,6 @@ class Food:
                               CELL_SIZE, CELL_SIZE, CELL_SIZE))
 
 
-# Define the game class
 class Game:
 
     def __init__(self):
@@ -147,27 +134,18 @@ class Game:
         self.food.spawn()
 
 
-# Initialize pygame
 pygame.init()
 
-# Create the game object
 game = Game()
 
-# Create the window
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Snake Game")
 
-# Create the clock
 clock = pygame.time.Clock()
 
-# Loop until the user clicks the close button.
 done = False
 
-# -------- Main Program Loop -----------
-while not done:
-    # --- Main event loop
-    # Ensure only one event is processed at a time
-    
+while not done:    
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             done = True
@@ -191,5 +169,4 @@ while not done:
     game.draw(screen)
     pygame.display.flip()
 
-    # --- Limit to FPS
     clock.tick(FPS)
