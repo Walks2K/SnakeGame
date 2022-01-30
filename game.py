@@ -134,36 +134,43 @@ class Game:
         self.food.spawn()
 
 
+class Player:
+
+    def __init__(self):
+        self.score = 0
+
+    def update(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    pygame.quit()
+                    sys.exit()
+                if event.key == pygame.K_RIGHT:
+                    if (game.snake.direction != "LEFT"):
+                        game.snake.direction = "RIGHT"
+                elif event.key == pygame.K_LEFT:
+                    if (game.snake.direction != "RIGHT"):
+                        game.snake.direction = "LEFT"
+                elif event.key == pygame.K_UP:
+                    if (game.snake.direction != "DOWN"):
+                        game.snake.direction = "UP"
+                elif event.key == pygame.K_DOWN:
+                    if (game.snake.direction != "UP"):
+                        game.snake.direction = "DOWN"
+
+
 pygame.init()
-
 game = Game()
-
+player = Player()
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Snake Game")
-
 clock = pygame.time.Clock()
 
-done = False
-
-while not done:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            done = True
-        elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_ESCAPE:
-                done = True
-            if event.key == pygame.K_RIGHT:
-                if (game.snake.direction != "LEFT"):
-                    game.snake.direction = "RIGHT"
-            elif event.key == pygame.K_LEFT:
-                if (game.snake.direction != "RIGHT"):
-                    game.snake.direction = "LEFT"
-            elif event.key == pygame.K_UP:
-                if (game.snake.direction != "DOWN"):
-                    game.snake.direction = "UP"
-            elif event.key == pygame.K_DOWN:
-                if (game.snake.direction != "UP"):
-                    game.snake.direction = "DOWN"
+while True:
+    player.update()
 
     game.update()
     game.draw(screen)
