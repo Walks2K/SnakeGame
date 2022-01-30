@@ -64,10 +64,11 @@ class Food:
         self.position = [0, 0]
         self.eaten = False
 
-    def update(self, snake):
+    def update(self, snake, player):
         if self.position == snake.position:
             self.eaten = True
             snake.length += 1
+            player.score += 1
         if self.eaten:
             self.spawn()
 
@@ -124,7 +125,7 @@ class Game:
     def update(self):
         self.player.update()
         self.snake.update()
-        self.food.update(self.snake)
+        self.food.update(self.snake, self.player)
 
         if self.check_collision():
             self.gameover(screen)
@@ -137,24 +138,34 @@ class Game:
         surface.fill(BLACK)
         self.snake.draw(surface)
         self.food.draw(surface)
+        font = pygame.font.SysFont("monospace", 24)
+        text = font.render("Score: " + str(self.player.score), True, WHITE)
+        text_rect = text.get_rect()
+        text_rect.topleft = (0, 0)
+        surface.blit(text, text_rect)
 
     def gameover(self, surface):
         restart_delay = time.time() + 3
         while time.time() < restart_delay:
             surface.fill(BLACK)
 
-            font = pygame.font.SysFont("monospace", 72)
-            text = font.render("Game Over", True, WHITE)
+            font = pygame.font.SysFont("monospace", 40)
+            text = font.render("GAME OVER", True, WHITE)
+            text_rect = text.get_rect()
+            text_rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 45)
+            surface.blit(text, text_rect)
+
+            font = pygame.font.SysFont("monospace", 25)
+            text = font.render(
+                "Restarting in " + str(int(restart_delay - time.time() + 1)),
+                True, WHITE)
             text_rect = text.get_rect()
             text_rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
             surface.blit(text, text_rect)
 
-            font = pygame.font.SysFont("monospace", 36)
-            text = font.render(
-                "Restarting in " + str(int(restart_delay - time.time()) + 1),
-                True, WHITE)
+            text = font.render("Score: " + str(self.player.score), True, WHITE)
             text_rect = text.get_rect()
-            text_rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 50)
+            text_rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 30)
             surface.blit(text, text_rect)
 
             pygame.display.update()
