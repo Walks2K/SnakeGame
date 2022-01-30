@@ -177,6 +177,7 @@ class Game:
     def reset(self):
         self.snake = Snake()
         self.food = Food()
+        self.player = Player()
         self.food.spawn()
 
 
