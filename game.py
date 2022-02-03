@@ -92,26 +92,27 @@ class Player:
         self.score = 0
 
     def update(self):
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
+        event = pygame.event.poll()
+
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
                 pygame.quit()
                 sys.exit()
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    pygame.quit()
-                    sys.exit()
-                if event.key == pygame.K_RIGHT or event.key == pygame.K_d:
-                    if (game.snake.direction != "LEFT"):
-                        game.snake.direction = "RIGHT"
-                elif event.key == pygame.K_LEFT or event.key == pygame.K_a:
-                    if (game.snake.direction != "RIGHT"):
-                        game.snake.direction = "LEFT"
-                elif event.key == pygame.K_UP or event.key == pygame.K_w:
-                    if (game.snake.direction != "DOWN"):
-                        game.snake.direction = "UP"
-                elif event.key == pygame.K_DOWN or event.key == pygame.K_s:
-                    if (game.snake.direction != "UP"):
-                        game.snake.direction = "DOWN"
+            if event.key == pygame.K_RIGHT or event.key == pygame.K_d:
+                if (game.snake.direction != "LEFT"):
+                    game.snake.direction = "RIGHT"
+            elif event.key == pygame.K_LEFT or event.key == pygame.K_a:
+                if (game.snake.direction != "RIGHT"):
+                    game.snake.direction = "LEFT"
+            elif event.key == pygame.K_UP or event.key == pygame.K_w:
+                if (game.snake.direction != "DOWN"):
+                    game.snake.direction = "UP"
+            elif event.key == pygame.K_DOWN or event.key == pygame.K_s:
+                if (game.snake.direction != "UP"):
+                    game.snake.direction = "DOWN"
 
 
 class Game:
