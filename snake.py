@@ -99,7 +99,6 @@ class Snake:
             for cell in self.tail[1:]:
                 if x == cell[0] and y == cell[1]:
                     return distance(self.x, self.y, x, y)
-            return 0
 
 
 class Food:
