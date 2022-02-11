@@ -14,7 +14,7 @@ ROWS = 30
 COLUMNS = 30
 SCREEN_WIDTH = COLUMNS * CELL_SIZE
 SCREEN_HEIGHT = ROWS * CELL_SIZE
-FPS = 30
+FPS = 60
 
 
 class Snake:
@@ -24,20 +24,25 @@ class Snake:
         self.body = []
         self.length = 4
         self.direction = "RIGHT"
+        self.next_move_time = 45
 
     def update(self):
-        if self.direction == "RIGHT":
-            self.position[0] += 1
-        elif self.direction == "LEFT":
-            self.position[0] -= 1
-        elif self.direction == "UP":
-            self.position[1] -= 1
-        elif self.direction == "DOWN":
-            self.position[1] += 1
+        time_now = pygame.time.get_ticks()
+        if time_now > self.next_move_time:
+            self.next_move_time = time_now + 40
 
-        self.body.insert(0, list(self.position))
-        if len(self.body) > self.length:
-            self.body.pop()
+            if self.direction == "RIGHT":
+                self.position[0] += 1
+            elif self.direction == "LEFT":
+                self.position[0] -= 1
+            elif self.direction == "UP":
+                self.position[1] -= 1
+            elif self.direction == "DOWN":
+                self.position[1] += 1
+
+            self.body.insert(0, list(self.position))
+            if len(self.body) > self.length:
+                self.body.pop()
 
     def draw(self, surface):
         # first part is green, second part is white
@@ -130,6 +135,8 @@ class Game:
         self.food = Food()
         self.player = Player()
         self.food.spawn()
+        self.clock = pygame.time.Clock()
+        self.dt = 0
 
     def update(self):
         self.player.update()
@@ -139,6 +146,8 @@ class Game:
         if self.check_collision():
             self.gameover(screen)
             self.reset()
+
+        self.dt = self.clock.tick(FPS) / 1000
 
     def check_collision(self):
         return self.snake.check_collision()
@@ -201,5 +210,3 @@ while True:
     game.update()
     game.draw(screen)
     pygame.display.flip()
-
-    clock.tick(FPS)
