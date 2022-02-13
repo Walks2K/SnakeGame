@@ -20,10 +20,13 @@ WIN_WIDTH = 300
 WIN_HEIGHT = 300
 CELL_SIZE = 20
 FPS = 30
-GENS = 1  # Set to 0 to run until fitness_threshold in config-feedforward.txt is reached
-MAX_MOVES = 500
+
+GENS = 1000  # Set to 0 to run until fitness_threshold in config-feedforward.txt is reached
+MAX_MOVES = 300
 USE_CHECKPOINT = False
-CHECKPOINT_GEN = '1'
+CHECKPOINT_GEN = '249'
+CHECKPOINT_EVERY = 50
+BINARY_VISION = True
 
 assert WIN_WIDTH % CELL_SIZE == 0, "Window width must be a multiple of cell size."
 assert WIN_HEIGHT % CELL_SIZE == 0, "Window height must be a multiple of cell size."
@@ -78,7 +81,7 @@ class Snake:
         Returns:
             Boolean: True if food is eaten else false.
         """
-        if self.x_pos == food.x and self.y_pos == food.y:
+        if self.x_pos == food.x_pos and self.y_pos == food.y_pos:
             self.score += 1
             self.length += 1
             self.hunger = MAX_MOVES
@@ -118,69 +121,8 @@ class Snake:
         """
         Change the snake's direction.
         """
-        # if direction[0] != -self.direction[0] and direction[
-        # 1] != -self.direction[1]:
-        self.direction = direction
-
-    def obstacle_left(self):
-        """
-        Calculates obstacle distance to the left.
-        """
-        x_pos = self.x_pos - 1
-        y_pos = self.y_pos
-        while True:
-            if x_pos < 0 or x_pos >= WIN_WIDTH // CELL_SIZE or y_pos < 0 or y_pos \
-                    >= WIN_HEIGHT // CELL_SIZE:
-                return distance(x_pos, y_pos, self.x_pos, self.y_pos)
-            for cell in self.tail[1:]:
-                if x_pos == cell[0] and y_pos == cell[1]:
-                    return distance(x_pos, y_pos, self.x_pos, self.y_pos)
-            x_pos -= 1
-
-    def obstacle_right(self):
-        """
-        Calculates obstacle distance to the right.
-        """
-        x_pos = self.x_pos + 1
-        y_pos = self.y_pos
-        while True:
-            if x_pos < 0 or x_pos >= WIN_WIDTH // CELL_SIZE or y_pos < 0 or y_pos \
-                    >= WIN_HEIGHT // CELL_SIZE:
-                return distance(x_pos, y_pos, self.x_pos, self.y_pos)
-            for cell in self.tail[1:]:
-                if x_pos == cell[0] and y_pos == cell[1]:
-                    return distance(x_pos, y_pos, self.x_pos, self.y_pos)
-            x_pos += 1
-
-    def obstacle_up(self):
-        """
-        Calculates obstacle distance to the top.
-        """
-        x_pos = self.x_pos
-        y_pos = self.y_pos - 1
-        while True:
-            if x_pos < 0 or x_pos >= WIN_WIDTH // CELL_SIZE or y_pos < 0 or y_pos \
-                    >= WIN_HEIGHT // CELL_SIZE:
-                return distance(x_pos, y_pos, self.x_pos, self.y_pos)
-            for cell in self.tail[1:]:
-                if x_pos == cell[0] and y_pos == cell[1]:
-                    return distance(x_pos, y_pos, self.x_pos, self.y_pos)
-            y_pos -= 1
-
-    def obstacle_down(self):
-        """
-        Calculates obstacle distance to the bottom.
-        """
-        x_pos = self.x_pos
-        y_pos = self.y_pos + 1
-        while True:
-            if x_pos < 0 or x_pos >= WIN_WIDTH // CELL_SIZE or y_pos < 0 or y_pos \
-                    >= WIN_HEIGHT // CELL_SIZE:
-                return distance(x_pos, y_pos, self.x_pos, self.y_pos)
-            for cell in self.tail[1:]:
-                if x_pos == cell[0] and y_pos == cell[1]:
-                    return distance(x_pos, y_pos, self.x_pos, self.y_pos)
-            y_pos += 1
+        if direction[0] != -self.direction[0] or direction[1] != -self.direction[1]:
+            self.direction = direction
 
     def vision(self, food_obj):
         """
@@ -201,18 +143,23 @@ class Snake:
             while True:
                 if x_pos < 0 or x_pos >= WIN_WIDTH // CELL_SIZE or y_pos < 0 or y_pos \
                         >= WIN_HEIGHT // CELL_SIZE:
-                    dist = dist if dist != 0 else MAX_MOVES
+                    dist = distance(self.x_pos, self.y_pos, x_pos, y_pos)
+                    # Scale distance to 0-1
+                    dist = dist / (WIN_WIDTH // CELL_SIZE +
+                                   WIN_HEIGHT // CELL_SIZE)
+
                     break
                 for cell in self.tail[1:]:
                     if x_pos == cell[0] and y_pos == cell[1]:
-                        tail = 1
-                        break
+                        tail = 1 if BINARY_VISION else distance(self.x_pos, self.y_pos, x_pos, y_pos) / \
+                            (WIN_WIDTH // CELL_SIZE + WIN_HEIGHT // CELL_SIZE)
                 if food == 0:
-                    if x_pos == food_obj.x and y_pos == food_obj.y:
-                        food = 1
+                    if x_pos == food_obj.x_pos and y_pos == food_obj.y_pos:
+                        food = 1 if BINARY_VISION else distance(self.x_pos, self.y_pos, x_pos, y_pos) / \
+                            (WIN_WIDTH // CELL_SIZE + WIN_HEIGHT // CELL_SIZE)
                 x_pos += direction[0]
                 y_pos += direction[1]
-                dist += 1
+
             vision.append([dist, food, tail])
         return vision
 
@@ -282,7 +229,7 @@ def neat_inputs(snake, food):
         inputs.append(vis[1])
         inputs.append(vis[2])
 
-    # flatten direction vector - 2 inputs
+    # flatten direction vector for one hot variables - 4 inputs
     if snake.direction == (1, 0):  # right
         inputs.append(1)
         inputs.append(0)
@@ -335,7 +282,9 @@ def eval_genome(genome, config):
         snake.move()
 
         if snake.check_collision():
-            fitness += snake.score * 10
+            fitness = snake.hunger + (2 * snake.score + snake.score * 500) - \
+                (snake.score * 0.25 * snake.hunger) - (snake.score * 0.3)
+
             done = True
             break
 
@@ -345,7 +294,7 @@ def eval_genome(genome, config):
             food = Food()
             food.spawn(snake)
 
-        #draw_window(WIN, snake, food)
+        # draw_window(WIN, snake, food)
 
     return fitness
 
@@ -375,9 +324,9 @@ def run(config_path):
     pop.add_reporter(neat.StdOutReporter(True))
     stats = neat.StatisticsReporter()
     pop.add_reporter(stats)
-    pop.add_reporter(neat.Checkpointer(50))
+    pop.add_reporter(neat.Checkpointer(CHECKPOINT_EVERY))
 
-    #winner = p.run(eval_genomes, 50)
+    # winner = p.run(eval_genomes, 50)
     para_eval = neat.ParallelEvaluator(
         multiprocessing.cpu_count(), eval_genome)
     winner = pop.run(para_eval.evaluate, GENS if GENS > 0 else None)
