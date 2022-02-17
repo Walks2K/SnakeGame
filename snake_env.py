@@ -101,7 +101,7 @@ class SnakeEnv(gym.Env):
         super(SnakeEnv, self).__init__()
         self.action_space = spaces.Discrete(4)
         self.observation_space = spaces.Box(
-            low=0, high=1, shape=(12,), dtype=np.float32)
+            low=0, high=1, shape=(16,), dtype=np.float32)
 
         self.grid_size = grid_size
         self.fps = fps
@@ -184,62 +184,57 @@ class SnakeEnv(gym.Env):
 
     def get_observation(self):
         """
-        Get observation of environment
-        11 inputs:
-        Danger Left, Danger Right, Danger Up, Danger Down - one hot
-        Direction Left, Direction Right, Direction Up, Direction Down - one hot
-        Food Left, Food Right, Food Up, Food Down - one hot
+        Get observation of environment:
+        Check for danger in each ordinal direction - one hot vector
+        Direction Left, Direction Right, Direction Up, Direction Down - one hot vector
+        Food Left, Food Right, Food Up, Food Down - one hot vector
 
         Return a numpy array
         """
-        observation = np.zeros(12)
 
-        # Danger Left
-        if self.snake.x - 1 == -1:
-            observation[0] = 1
-        elif [self.snake.x - 1, self.snake.y] in self.snake.body:
-            observation[0] = 1
+        # Danger
+        danger_vector = np.zeros(8)
+        if self.snake.y - 1 < 0 or [self.snake.x, self.snake.y - 1] in self.snake.body:  # N
+            danger_vector[0] = 1
+        # NE
+        if self.snake.y - 1 < 0 or self.snake.x + 1 >= self.grid_size[0] or [self.snake.x + 1, self.snake.y - 1] in self.snake.body:
+            danger_vector[1] = 1
+        # E
+        if self.snake.x + 1 >= self.grid_size[0] or [self.snake.x + 1, self.snake.y] in self.snake.body:
+            danger_vector[2] = 1
+        if self.snake.y + 1 >= self.grid_size[1] or self.snake.x + 1 >= self.grid_size[0] or [self.snake.x + 1, self.snake.y + 1] in self.snake.body:  # SE
+            danger_vector[3] = 1
+        # S
+        if self.snake.y + 1 >= self.grid_size[1] or [self.snake.x, self.snake.y + 1] in self.snake.body:
+            danger_vector[4] = 1
+        if self.snake.y + 1 >= self.grid_size[1] or self.snake.x - 1 < 0 or [self.snake.x - 1, self.snake.y + 1] in self.snake.body:  # SW
+            danger_vector[5] = 1
+        if self.snake.x - 1 < 0 or [self.snake.x - 1, self.snake.y] in self.snake.body:  # W
+            danger_vector[6] = 1
+        # NW
+        if self.snake.y - 1 < 0 or self.snake.x - 1 < 0 or [self.snake.x - 1, self.snake.y - 1] in self.snake.body:
+            danger_vector[7] = 1
 
-        # Danger Right
-        if self.snake.x + 1 == self.grid_size[0]:
-            observation[1] = 1
-        elif [self.snake.x + 1, self.snake.y] in self.snake.body:
-            observation[1] = 1
-
-        # Danger Up
-        if self.snake.y - 1 == -1:
-            observation[2] = 1
-        elif [self.snake.x, self.snake.y - 1] in self.snake.body:
-            observation[2] = 1
-
-        # Danger Down
-        if self.snake.y + 1 == self.grid_size[1]:
-            observation[3] = 1
-        elif [self.snake.x, self.snake.y + 1] in self.snake.body:
-            observation[3] = 1
-
-        # Direction one-hot
-        if self.snake.direction == "LEFT":
-            observation[4] = 1
-        elif self.snake.direction == "RIGHT":
-            observation[5] = 1
+        # Direction
+        direction_vector = np.zeros(4)
+        if self.snake.direction == "RIGHT":
+            direction_vector[0] = 1
+        elif self.snake.direction == "LEFT":
+            direction_vector[1] = 1
         elif self.snake.direction == "UP":
-            observation[6] = 1
+            direction_vector[2] = 1
         elif self.snake.direction == "DOWN":
-            observation[7] = 1
+            direction_vector[3] = 1
 
-        # Food direction one hot
-        food_dist_x = self.snake.x - self.food.x
-        food_dist_y = self.snake.y - self.food.y
+        # Food
+        food_vector = np.zeros(4)
+        if self.food.x < self.snake.x:
+            food_vector[0] = 1
+        elif self.food.x > self.snake.x:
+            food_vector[1] = 1
+        if self.food.y < self.snake.y:
+            food_vector[2] = 1
+        elif self.food.y > self.snake.y:
+            food_vector[3] = 1
 
-        if food_dist_x < 0:
-            observation[8] = 1
-        elif food_dist_x > 0:
-            observation[9] = 1
-
-        if food_dist_y < 0:
-            observation[10] = 1
-        elif food_dist_y > 0:
-            observation[11] = 1
-
-        return observation
+        return np.concatenate((danger_vector, direction_vector, food_vector))
