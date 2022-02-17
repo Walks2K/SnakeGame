@@ -21,12 +21,12 @@ WIN_HEIGHT = 300
 CELL_SIZE = 20
 FPS = 30
 
-GENS = 1000  # Set to 0 to run until fitness_threshold in config-feedforward.txt is reached
+GENS = 250  # Set to 0 to run until fitness_threshold in config-feedforward.txt is reached
 MAX_MOVES = 300
 USE_CHECKPOINT = False
 CHECKPOINT_GEN = '249'
 CHECKPOINT_EVERY = 50
-BINARY_VISION = True
+BINARY_VISION = False
 
 assert WIN_WIDTH % CELL_SIZE == 0, "Window width must be a multiple of cell size."
 assert WIN_HEIGHT % CELL_SIZE == 0, "Window height must be a multiple of cell size."
@@ -52,7 +52,6 @@ class Snake:
         self.tail = [(x_pos, y_pos), (x_pos - 1, y_pos), (x_pos - 2, y_pos),
                      (x_pos - 3, y_pos)]
         self.score = 0
-        self.fitness = 0
         self.hunger = MAX_MOVES
 
     def move(self):
@@ -121,8 +120,8 @@ class Snake:
         """
         Change the snake's direction.
         """
-        if direction[0] != -self.direction[0] or direction[1] != -self.direction[1]:
-            self.direction = direction
+        # if direction[0] != -self.direction[0] or direction[1] != -self.direction[1]:
+        self.direction = direction
 
     def vision(self, food_obj):
         """
@@ -130,8 +129,8 @@ class Snake:
         """
         # Fire a ray in 8 directions and return:
         # - distance to wall in that direction,
-        # - 0/1 if there is food in that direction
-        # - 0/1 if tail in that direction
+        # - 0/1 (binary) or dist if there is food in that direction
+        # - 0/1 (binary) or dist if tail in that direction
         vision = []
         for direction in [(1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (-1, -1),
                           (1, -1), (-1, 1)]:
@@ -144,19 +143,18 @@ class Snake:
                 if x_pos < 0 or x_pos >= WIN_WIDTH // CELL_SIZE or y_pos < 0 or y_pos \
                         >= WIN_HEIGHT // CELL_SIZE:
                     dist = distance(self.x_pos, self.y_pos, x_pos, y_pos)
-                    # Scale distance to 0-1
-                    dist = dist / (WIN_WIDTH // CELL_SIZE +
-                                   WIN_HEIGHT // CELL_SIZE)
-
+                    # scale between 0 and 1 and round to 2 decimal places
+                    dist = round(
+                        dist / (WIN_WIDTH // CELL_SIZE if direction[1] == 0 else WIN_HEIGHT // CELL_SIZE), 2)
                     break
                 for cell in self.tail[1:]:
                     if x_pos == cell[0] and y_pos == cell[1]:
-                        tail = 1 if BINARY_VISION else distance(self.x_pos, self.y_pos, x_pos, y_pos) / \
-                            (WIN_WIDTH // CELL_SIZE + WIN_HEIGHT // CELL_SIZE)
+                        tail = 1 if BINARY_VISION else round(distance(self.x_pos, self.y_pos, x_pos, y_pos) /
+                                                             (WIN_WIDTH // CELL_SIZE + WIN_HEIGHT // CELL_SIZE), 2)
                 if food == 0:
                     if x_pos == food_obj.x_pos and y_pos == food_obj.y_pos:
-                        food = 1 if BINARY_VISION else distance(self.x_pos, self.y_pos, x_pos, y_pos) / \
-                            (WIN_WIDTH // CELL_SIZE + WIN_HEIGHT // CELL_SIZE)
+                        food = 1 if BINARY_VISION else round(distance(self.x_pos, self.y_pos, x_pos, y_pos) /
+                                                             (WIN_WIDTH // CELL_SIZE + WIN_HEIGHT // CELL_SIZE), 2)
                 x_pos += direction[0]
                 y_pos += direction[1]
 
@@ -267,33 +265,34 @@ def eval_genome(genome, config):
     done = False
 
     while not done:
+
         inputs = neat_inputs(snake, food)
         outputs = net.activate(inputs)
 
+        # Get direction from max of output vector
         if max(outputs) == outputs[0]:
-            snake.change_direction((1, 0))  # right
+            snake.change_direction((1, 0))
         elif max(outputs) == outputs[1]:
-            snake.change_direction((-1, 0))  # left
+            snake.change_direction((-1, 0))
         elif max(outputs) == outputs[2]:
-            snake.change_direction((0, 1))  # down
+            snake.change_direction((0, 1))
         elif max(outputs) == outputs[3]:
-            snake.change_direction((0, -1))  # up
+            snake.change_direction((0, -1))
 
         snake.move()
+        snake.add_cell()
 
         if snake.check_collision():
-            fitness = snake.hunger + (2 * snake.score + snake.score * 500) - \
-                (snake.score * 0.25 * snake.hunger) - (snake.score * 0.3)
-
+            fitness -= 100
             done = True
             break
-
-        snake.add_cell()
 
         if snake.eat(food):
             food = Food()
             food.spawn(snake)
+            fitness += 10
 
+        fitness += 0.01
         # draw_window(WIN, snake, food)
 
     return fitness
@@ -366,17 +365,17 @@ def run(config_path):
         inputs = neat_inputs(snake, food)
         outputs = winner_net.activate(inputs)
 
+        # Get direction from max of output vector
         if max(outputs) == outputs[0]:
-            snake.change_direction((1, 0))  # right
+            snake.change_direction((1, 0))
         elif max(outputs) == outputs[1]:
-            snake.change_direction((-1, 0))  # left
+            snake.change_direction((-1, 0))
         elif max(outputs) == outputs[2]:
-            snake.change_direction((0, 1))  # down
+            snake.change_direction((0, 1))
         elif max(outputs) == outputs[3]:
-            snake.change_direction((0, -1))  # up
+            snake.change_direction((0, -1))
 
         snake.move()
-
         snake.add_cell()
 
         if snake.check_collision():
