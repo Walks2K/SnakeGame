@@ -40,7 +40,7 @@ def main():
     if not os.path.exists(LOGDIR):
         os.makedirs(LOGDIR)
 
-    env = SnakeEnv()
+    env = SnakeEnv(max_steps=1000)
     if RESUME_TRAINING:
         model = PPO.load(latest_model(), env=env,
                          verbose=1, tensorboard_log=LOGDIR)

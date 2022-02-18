@@ -94,7 +94,7 @@ class SnakeEnv(gym.Env):
     Custom Snake environment that follows gym interface
     """
 
-    def __init__(self, grid_size=(15, 15), fps=30, max_steps=200):
+    def __init__(self, grid_size=(15, 15), cell_size=20, fps=30, max_steps=200):
         """
         Initialize Snake environment
         """
@@ -104,6 +104,7 @@ class SnakeEnv(gym.Env):
             low=0, high=1, shape=(16,), dtype=np.float32)
 
         self.grid_size = grid_size
+        self.cell_size = cell_size
         self.fps = fps
         self.max_steps = max_steps
 
@@ -134,7 +135,7 @@ class SnakeEnv(gym.Env):
                 reward = 10
                 self.steps = self.max_steps
             else:
-                reward = 0
+                reward = 0.01
         else:
             reward = -10
 
@@ -148,13 +149,11 @@ class SnakeEnv(gym.Env):
         self.snake = Snake(self.grid_size[0] // 2, self.grid_size[1] // 2)
         food_pos = random.choice(get_empty_space(self.snake, self.grid_size))
         self.food = Food(food_pos[0], food_pos[1])
-        self.cell_size = 20
         self.screen = pygame.display.set_mode(
             (self.grid_size[0] * self.cell_size, self.grid_size[1] * self.cell_size))
         pygame.display.set_caption("Snake")
         pygame.init()
         pygame.font.init()
-        self.clock = pygame.time.Clock()
         self.steps = self.max_steps
 
         observation = self.get_observation()
@@ -180,7 +179,6 @@ class SnakeEnv(gym.Env):
         pygame.draw.rect(
             self.screen, (255, 0, 0), (self.food.x * self.cell_size, self.food.y * self.cell_size, self.cell_size, self.cell_size))
         pygame.display.update()
-        self.clock.tick(self.fps)
 
     def get_observation(self):
         """

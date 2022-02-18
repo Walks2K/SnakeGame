@@ -31,7 +31,7 @@ def main():
     """
     Main function
     """
-    env = SnakeEnv()
+    env = SnakeEnv(grid_size=(30, 30), cell_size=15)
     model = PPO.load(latest_model(), env=env)
 
     for _episode in range(1, EPISODES):
@@ -41,7 +41,7 @@ def main():
             action, _states = model.predict(obs, deterministic=True)
             obs, _rewards, done, _info = env.step(action)
             env.render()
-            time.sleep(0.05)
+            time.sleep(0.02)
 
 
 if __name__ == "__main__":
