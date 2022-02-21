@@ -9,8 +9,8 @@ import time
 from stable_baselines3 import PPO
 from snake_env import SnakeEnv
 
+
 EPISODES = 10
-TIMESTEPS = 10000
 
 
 def latest_model():

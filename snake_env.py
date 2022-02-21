@@ -139,6 +139,7 @@ class SnakeEnv(gym.Env):
         else:
             reward = -10
 
+        self.steps -= 1
         observation = self.get_observation()
         return observation, reward, done, {}
 
