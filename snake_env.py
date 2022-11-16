@@ -191,14 +191,20 @@ class SnakeEnv(gym.Env):
         elif self.food[1] > self.snake[0][1]:
             obs[3] = 1
 
-        if self.snake[0][0] == 0 or [self.snake[0][0] - 1, self.snake[0][1]] in self.snake:
+        if (
+            self.snake[0][0] == 0
+            or [self.snake[0][0] - 1, self.snake[0][1]] in self.snake
+        ):
             obs[4] = 1
         if (
             self.snake[0][0] == self.width - 1
             or [self.snake[0][0] + 1, self.snake[0][1]] in self.snake
         ):
             obs[5] = 1
-        if self.snake[0][1] == 0 or [self.snake[0][0], self.snake[0][1] - 1] in self.snake:
+        if (
+            self.snake[0][1] == 0
+            or [self.snake[0][0], self.snake[0][1] - 1] in self.snake
+        ):
             obs[6] = 1
         if (
             self.snake[0][1] == self.height - 1

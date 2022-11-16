@@ -17,10 +17,11 @@ def latest_model():
     Find newest file in all subdirs of 'models'
     """
     newest_file = None
-    for root, _dirs, files in os.walk('models'):
+    for root, _dirs, files in os.walk("models"):
         for file in files:
-            if newest_file is None or \
-                    os.path.getmtime(os.path.join(root, file)) > os.path.getmtime(newest_file):
+            if newest_file is None or os.path.getmtime(
+                os.path.join(root, file)
+            ) > os.path.getmtime(newest_file):
                 newest_file = os.path.join(root, file)
     print(newest_file)
     return newest_file

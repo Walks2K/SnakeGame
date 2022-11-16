@@ -35,8 +35,8 @@ def latest_model():
                 newest_file = os.path.join(root, file)
 
     # set models_dir and log_dir to the same as the latest model
-    global MODELS_DIR # pylint: disable=global-statement
-    global LOG_DIR # pylint: disable=global-statement
+    global MODELS_DIR  # pylint: disable=global-statement
+    global LOG_DIR  # pylint: disable=global-statement
     MODELS_DIR = f"models/{os.path.basename(os.path.dirname(newest_file))}"
     LOG_DIR = f"logs/{os.path.basename(MODELS_DIR)}"
 
