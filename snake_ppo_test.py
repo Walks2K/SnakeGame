@@ -4,7 +4,6 @@ PPO test agent for Snake using Stable Baselines 3
 
 
 import os
-import time
 
 from stable_baselines3 import PPO
 from snake_env import SnakeEnv
@@ -31,17 +30,21 @@ def main():
     """
     Main function
     """
-    env = SnakeEnv(grid_size=(30, 30), cell_size=15)
+    env = SnakeEnv()
     model = PPO.load(latest_model(), env=env)
 
-    for _episode in range(1, EPISODES):
+    for episode in range(1, EPISODES + 1):
         obs = env.reset()
         done = False
+        score = 0
+
         while not done:
             action, _states = model.predict(obs, deterministic=True)
-            obs, _rewards, done, _info = env.step(action)
+            obs, rewards, done, _info = env.step(action)
+            score += rewards
             env.render()
-            time.sleep(0.02)
+
+        print(f"Episode: {episode}, Score: {score}")
 
 
 if __name__ == "__main__":
